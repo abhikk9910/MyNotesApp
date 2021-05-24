@@ -3,7 +3,9 @@ package com.shivank.mynotesapp.activity.EditorActivity;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -13,9 +15,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.shivank.mynotesapp.R;
-import com.shivank.mynotesapp.api.ApiClient;
-import com.shivank.mynotesapp.api.ApiInterface;
-import com.shivank.mynotesapp.model.Note;
 import com.thebluealliance.spectrum.SpectrumPalette;
 
 import retrofit2.Call;
@@ -32,7 +31,10 @@ public class EditorActivity extends AppCompatActivity implements EditorView {
 
     EditorPresenter presenter;
 
-    int color;
+    int color, id;
+    String title, note;
+
+    Menu actionMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,14 +46,66 @@ public class EditorActivity extends AppCompatActivity implements EditorView {
         palette = findViewById(R.id.palette);
 
         palette.setOnColorSelectedListener(
-                clr -> color =clr
+                clr -> color = clr
         );
-        palette.setSelectedColor(getResources().getColor(R.color.white));
-        color = getResources().getColor(R.color.white);
 
+
+//      Progress Dialog
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Please wait...");
+
         presenter = new EditorPresenter(this);
+
+        Intent intent = getIntent();
+        id = intent.getIntExtra("id", 0);
+        title = intent.getStringExtra("title");
+        note = intent.getStringExtra("note");
+        color = intent.getIntExtra("color", 0);
+
+        setDataFromIntentExtra();
+
+    }
+
+    private void setDataFromIntentExtra() {
+        if (id != 0) {
+            et_title.setText(title);
+            et_note.setText(note);
+            palette.setSelectedColor(color);
+
+            getSupportActionBar().setTitle("Update Note");
+            readMode();
+        } else {
+            palette.setSelectedColor(getResources().getColor(R.color.white));
+            color = getResources().getColor(R.color.white);
+            editMode();
+        }
+    }
+    private void editMode() {
+        et_title.setFocusableInTouchMode(true);
+        et_note.setFocusableInTouchMode(true);
+        palette.setEnabled(true);
+    }
+
+    private void readMode() {
+        et_title.setFocusableInTouchMode(false);
+        et_note.setFocusableInTouchMode(false);
+        et_title.setFocusable(false);
+        et_note.setFocusable(false);
+        palette.setEnabled(false);
+    }
+
+    private void editmode() {
+        et_title.setFocusableInTouchMode(true);
+        et_note.setFocusableInTouchMode(true);
+        palette.setEnabled(true);
+    }
+
+    private void readmode() {
+        et_title.setFocusableInTouchMode(false);
+        et_title.setFocusable(false);
+        et_note.setFocusableInTouchMode(false);
+        et_note.setFocusable(false);
+        palette.setEnabled(false);
 
     }
 
@@ -59,19 +113,34 @@ public class EditorActivity extends AppCompatActivity implements EditorView {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_editor, menu);
+        actionMenu = menu;
+
+        if (id != 0) {
+            actionMenu.findItem(R.id.edit).setVisible(true);
+            actionMenu.findItem(R.id.delete).setVisible(true);
+            actionMenu.findItem(R.id.save).setVisible(false);
+            actionMenu.findItem(R.id.update).setVisible(false);
+        } else {
+            actionMenu.findItem(R.id.edit).setVisible(false);
+            actionMenu.findItem(R.id.delete).setVisible(false);
+            actionMenu.findItem(R.id.save).setVisible(true);
+            actionMenu.findItem(R.id.update).setVisible(false);
+        }
+
+
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        String title = et_title.getText().toString().trim();
+        String note = et_note.getText().toString().trim();
+        int color = this.color;
+
         switch (item.getItemId()) {
             case R.id.save:
-                //save
-                String title = et_title.getText().toString().trim();
-                String note = et_note.getText().toString().trim();
-                int color = this.color;
-                //int color = 2;
-
+                Log.d("Menu Save Btn", "Reached");
+                //Save
                 if (title.isEmpty()) {
                     et_title.setError("Please enter a title");
                 } else if (note.isEmpty()) {
@@ -79,6 +148,45 @@ public class EditorActivity extends AppCompatActivity implements EditorView {
                 } else {
                     presenter.saveNote(title, note, color);
                 }
+                return true;
+
+            case R.id.edit:
+
+                editMode();
+                actionMenu.findItem(R.id.edit).setVisible(false);
+                actionMenu.findItem(R.id.delete).setVisible(false);
+                actionMenu.findItem(R.id.save).setVisible(false);
+                actionMenu.findItem(R.id.update).setVisible(true);
+
+                return true;
+
+            case R.id.update:
+                //Update
+                Log.d("Menu Update Btn", "Reached");
+                if (title.isEmpty()) {
+                    et_title.setError("Please enter a title");
+                } else if (note.isEmpty()) {
+                    et_note.setError("Please enter a note");
+                } else {
+                    presenter.updateNote(id, title, note, color);
+                }
+
+                return true;
+
+            case R.id.delete:
+                Log.d("Menu Delete Btn", "Reached");
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+                alertDialog.setTitle("Confirm !");
+                alertDialog.setMessage("Are you sure?");
+                alertDialog.setNegativeButton("Yes", (dialog, which) -> {
+                    dialog.dismiss();
+                    presenter.daleteNote(id);
+                });
+                alertDialog.setPositiveButton("Cencel",
+                        (dialog, which) -> dialog.dismiss());
+
+                alertDialog.show();
+
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -97,13 +205,14 @@ public class EditorActivity extends AppCompatActivity implements EditorView {
     }
 
     @Override
-    public void onAddSuccess(String message) {
+    public void onRequestSuccess(String message) {
         Log.d("onAddSuccess", message);
+        setResult(RESULT_OK);
         finish();
     }
 
     @Override
-    public void onAddError(String message) {
+    public void onRequestError(String message) {
         Log.d("onAddSuccess", message);
     }
 }

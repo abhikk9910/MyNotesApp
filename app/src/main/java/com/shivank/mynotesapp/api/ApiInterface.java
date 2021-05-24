@@ -17,9 +17,20 @@ public interface ApiInterface {
             @Field("title") String title,
             @Field("note") String note,
             @Field("color") int color
+    );
 
+    @FormUrlEncoded
+    @POST("update.php")
+    Call<Note> updateNote(
+            @Field("id") int id,
+            @Field("title") String title,
+            @Field("note") String note,
+            @Field("color") int color
     );
 
     @GET("notes.php")
     Call<List<Note>> getNotes();
+
+    @GET("delete.php")
+    Call<Note> deleteNote(@Field("id") int id);
 }
