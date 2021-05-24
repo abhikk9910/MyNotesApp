@@ -20,7 +20,7 @@ public class EditorPresenter {
 
     void saveNote(final String title, final String note, final int color) {
 
-        Log.d("SAVENOTE_FNS", "true");
+        Log.d("saveNote", "true");
         view.showProgress();
 
         ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
@@ -34,10 +34,8 @@ public class EditorPresenter {
                 if (response.isSuccessful() && response.body() != null) {
 
                     Boolean success = response.body().getSuccess();
-
                     if (success) {
                         view.onRequestSuccess(String.valueOf(response.body().getMessage()));
-
                     } else {
                         view.onRequestError(String.valueOf(response.body().getMessage()));
                     }
@@ -52,6 +50,7 @@ public class EditorPresenter {
         });
     }
 
+
     void updateNote(int id, String title, String note, int color) {
         ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
         Call<Note> call = apiInterface.updateNote(id, title, note, color);
@@ -59,11 +58,11 @@ public class EditorPresenter {
             @Override
             public void onResponse(Call<Note> call, Response<Note> response) {
                 view.hideProgress();
-                if (response.isSuccessful() && response.body() != null){
+                if (response.isSuccessful() && response.body() != null) {
                     Boolean success = response.body().getSuccess();
-                    if (success){
+                    if (success) {
                         view.onRequestSuccess(response.body().getMessage());
-                    }else {
+                    } else {
                         view.onRequestError(response.body().getMessage());
                     }
                 }
@@ -76,7 +75,8 @@ public class EditorPresenter {
             }
         });
     }
-    void daleteNote(int id){
+
+    void daleteNote(int id) {
         view.showProgress();
         ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
         Call<Note> call = apiInterface.deleteNote(id);
@@ -84,9 +84,9 @@ public class EditorPresenter {
             @Override
             public void onResponse(Call<Note> call, Response<Note> response) {
                 view.hideProgress();
-                if (response.isSuccessful() && response.body() != null){
+                if (response.isSuccessful() && response.body() != null) {
                     view.onRequestSuccess(response.body().getMessage());
-                }else{
+                } else {
                     view.onRequestError(response.body().getMessage());
                 }
             }

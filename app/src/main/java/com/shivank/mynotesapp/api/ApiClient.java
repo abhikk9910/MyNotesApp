@@ -7,6 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
 
+//    private static final String BASE_URL = "https://native007.000webhostapp.com/api/";
     private static final String BASE_URL = "https://nativedevelopers.in/noteapp/";
     private static Retrofit retrofit;
 

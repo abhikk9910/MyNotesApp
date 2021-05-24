@@ -31,6 +31,7 @@ public interface ApiInterface {
     @GET("notes.php")
     Call<List<Note>> getNotes();
 
-    @GET("delete.php")
+    @FormUrlEncoded
+    @POST("delete.php")
     Call<Note> deleteNote(@Field("id") int id);
 }

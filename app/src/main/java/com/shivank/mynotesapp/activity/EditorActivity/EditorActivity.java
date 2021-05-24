@@ -94,20 +94,6 @@ public class EditorActivity extends AppCompatActivity implements EditorView {
         palette.setEnabled(false);
     }
 
-    private void editmode() {
-        et_title.setFocusableInTouchMode(true);
-        et_note.setFocusableInTouchMode(true);
-        palette.setEnabled(true);
-    }
-
-    private void readmode() {
-        et_title.setFocusableInTouchMode(false);
-        et_title.setFocusable(false);
-        et_note.setFocusableInTouchMode(false);
-        et_note.setFocusable(false);
-        palette.setEnabled(false);
-
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
